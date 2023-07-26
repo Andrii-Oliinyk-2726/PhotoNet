@@ -1,4 +1,4 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -12,9 +12,9 @@ class Settings(BaseSettings):
     mail_server: str = "smtp.test.com"
     redis_host: str = 'localhost'
     redis_port: int = 6379
-    cloudinary_name = "cloudinary name"
-    cloudinary_api_key = "000000000000000"
-    cloudinary_api_secret = "secret_key"
+    cloudinary_name: str = "cloudinary name"
+    cloudinary_api_key: str = "000000000000000"
+    cloudinary_api_secret: str = "secret_key"
 
 
     class Config:
