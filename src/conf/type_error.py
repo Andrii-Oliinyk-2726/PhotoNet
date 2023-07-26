@@ -1,0 +1,5 @@
+ERROR_1501 = "Database is not configured correctly"
+ERROR_1502 = "Error connecting to the database"
+ERROR_1503 = "Email is exists"
+ERROR_1504 = "Not found!"
+ERROR_1505 = "Not found user for photo"
