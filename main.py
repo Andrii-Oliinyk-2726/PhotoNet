@@ -9,8 +9,13 @@ from src.database.models import User, Image, Tag, Comment, TransformedImage, Rat
 from src.routes import transformed_images, auth, tags, comments_routes, images, ratings, users, search
 
 
+from src.conf.config import settings
+from src.routes import transformed_images, auth, tags, comments_routes, images, ratings
+
+
 # Стоврюємо екземпляр FastApi, встановлюємо назву додатка в swagger та відсоруємо роути по методам:
 app = FastAPI(swagger_ui_parameters={"operationsSorter": "method"}, title='PhotoShare app')
+
 
 # створюємо адмінку
 admin = Admin(app, engine)
@@ -82,9 +87,11 @@ admin.add_view(RatingAdmin)
 admin.add_view(TransformedImageAdmin)
 
 
+
 @app.get("/")
 def root():
     return {"message": "Welcome to FastAPI!"}
+
 
 
 app.include_router(comments_routes.router, prefix='/api')
@@ -95,6 +102,7 @@ app.include_router(tags.router, prefix='/api')
 app.include_router(images.router, prefix='/api')
 app.include_router(ratings.router, prefix='/api')
 app.include_router(search.router, prefix='/api')
+
 
 
 if __name__ == '__main__':
