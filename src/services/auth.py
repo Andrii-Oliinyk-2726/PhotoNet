@@ -1,3 +1,4 @@
+
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -29,6 +30,7 @@ class Auth:
          в базі даних
          :return: True, якщо plain_password правильний, і false в іншому випадку
          """
+
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def get_password_hash(self, password: str):
@@ -48,6 +50,7 @@ class Auth:
          :param expires_delta: Необов’язково [float]: установіть час закінчення терміну дії маркера
          :return: Закодований маркер доступу
          """
+
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + timedelta(seconds=expires_delta)
@@ -56,6 +59,7 @@ class Auth:
         to_encode.update({"iat": datetime.utcnow(), "exp": expire, "scope": "access_token"})
         encoded_access_token = jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
         return encoded_access_token
+
 
     # визначте функцію для створення нового маркера оновлення
     async def create_refresh_token(self, data: dict, expires_delta: Optional[float] = None):
@@ -119,8 +123,9 @@ class Auth:
                 raise credentials_exception
         except JWTError as e:
             raise credentials_exception
-        
+     
         user = await repository_users.get_user_by_email(email, db)
+
         return user
 
     def create_email_token(self, data: dict):
