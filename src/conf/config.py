@@ -1,4 +1,4 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, PydanticUserError
 
 
 class Settings(BaseSettings):
@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     cloudinary_name = "cloudinary name"
     cloudinary_api_key = "000000000000000"
     cloudinary_api_secret = "secret_key"
-
 
     class Config:
         env_file = ".env"

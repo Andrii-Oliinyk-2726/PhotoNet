@@ -1,8 +1,7 @@
-import pickle
+
 from datetime import datetime, timedelta
 from typing import Optional
 
-import redis
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -20,40 +19,38 @@ class Auth:
     SECRET_KEY = settings.jwt_secret_key
     ALGORITHM = settings.jwt_algorithm
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-    r = redis.Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
     def verify_password(self, plain_password, hashed_password):
         """
-        The verify_password function takes a plain-text password and hashed
-        password as arguments. It then uses the pwd_context object to verify that the
-        plain-text password matches the hashed one.
+         Функція verify_password приймає простий текстовий пароль і хешує його
+         пароль як аргументи. Потім він використовує об’єкт pwd_context, щоб перевірити, що
+         простий текстовий пароль збігається з хешованим.
+         :param plain_password: Перевірте, чи пароль, введений користувачем, збігається з тим, що зберігається в базі даних
+         :param hashed_password: Перевірте пароль, який передається, зі збереженим хешованим паролем
+         в базі даних
+         :return: True, якщо plain_password правильний, і false в іншому випадку
+         """
 
-        :param plain_password: Check if the password entered by the user matches with what is stored in the database
-        :param hashed_password: Check the password that is being passed in against the hashed password stored
-        in the database
-        :return: True if the plain_password is correct, and false otherwise
-        """
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def get_password_hash(self, password: str):
         """
-        The get_password_hash function takes a password as input and returns the hash of that password.
-        The hash is generated using the pwd_context object, which is an instance of Flask-Bcrypt's Bcrypt class.
-
-        :param password: str: Specify the password that will be hashed
-        :return: A string that is a hash of the password
-        """
+         Функція get_password_hash приймає пароль як вхідні дані та повертає хеш цього пароля.
+         Хеш генерується за допомогою об’єкта pwd_context, який є екземпляром класу Bcrypt Flask-Bcrypt.
+         :param password: str: Вкажіть пароль, який буде хешовано
+         :return: Рядок, який є хешем пароля
+         """
         return self.pwd_context.hash(password)
 
-    # define a function to generate a new access token
+    # визначте функцію для створення нового маркера доступу
     async def create_access_token(self, data: dict, expires_delta: Optional[float] = None):
         """
-        The create_access_token function creates a new access token.
+         Функція create_access_token створює новий маркер доступу.
+         :param data: dict: передати дані, які будуть закодовані в маркері доступу
+         :param expires_delta: Необов’язково [float]: установіть час закінчення терміну дії маркера
+         :return: Закодований маркер доступу
+         """
 
-        :param data: dict: Pass the data that will be encoded in the access token
-        :param expires_delta: Optional[float]: Set the expiration time of the token
-        :return: An encoded access token
-        """
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + timedelta(seconds=expires_delta)
@@ -63,16 +60,16 @@ class Auth:
         encoded_access_token = jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
         return encoded_access_token
 
-    # define a function to generate a new refresh token
+
+    # визначте функцію для створення нового маркера оновлення
     async def create_refresh_token(self, data: dict, expires_delta: Optional[float] = None):
         """
-        The create_refresh_token function creates a refresh token for the user.
-
-        :param data: dict: Pass in the user's information, such as their username and email
-        :param expires_delta: Optional[float]: Set the expiry time of the refresh token
-        :return: An encoded token that contains the data passed to it as well as a timestamp
-        when the token was created and an expiration date
-        """
+         Функція create_refresh_token створює маркер оновлення для користувача.
+         :param data: dict: передати інформацію про користувача, наприклад ім’я користувача та електронну адресу
+         :param expires_delta: Необов’язково [float]: установіть час закінчення терміну дії маркера оновлення
+         :return: Закодований маркер, який містить передані йому дані, а також мітку часу
+         дата створення маркера та термін дії
+         """
         to_encode = data.copy()
         if expires_delta:
             expire = datetime.utcnow() + timedelta(seconds=expires_delta)
@@ -84,14 +81,13 @@ class Auth:
 
     async def decode_refresh_token(self, refresh_token: str):
         """
-        The decode_refresh_token function is used to decode the refresh token.
-        It takes a refresh_token as an argument and returns the email of the user if it's valid.
-        If not, it raises an HTTPException with status code 401 (UNAUTHORIZED)
-        and detail 'Could not validate credentials'.
-
-        :param refresh_token: str: Pass the refresh token to the function
-        :return: The email of the user associated with the refresh token
-        """
+         Функція decode_refresh_token використовується для декодування маркера оновлення.
+         Він приймає refresh_token як аргумент і повертає електронну адресу користувача, якщо вона дійсна.
+         Якщо ні, виникає HTTPException із кодом статусу 401 (НЕАВТОРИЗОВАНО)
+         і докладно «Не вдалося перевірити облікові дані».
+         :param refresh_token: str: Передайте маркер оновлення функції
+         :return: Електронна адреса користувача, пов’язана з маркером оновлення
+         """
         try:
             payload = jwt.decode(refresh_token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
             if payload['scope'] == 'refresh_token':
@@ -104,21 +100,20 @@ class Auth:
 
     async def get_current_user(self, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
         """
-        The get_current_user function is a dependency that will be used in the
-        protected endpoints. It takes a token as an argument and returns the user
-        if it's valid, otherwise raises an HTTPException with status code 401.
-
-        :param token: str: Get the token from the authorization header
-        :param db: Session: Pass the database session to the function
-        :return: A user object
-        """
+         Функція get_current_user — це залежність, яка використовуватиметься в
+         захищені кінцеві точки. Він приймає маркер як аргумент і повертає користувача
+         якщо він дійсний, інакше викликає HTTPException із кодом статусу 401.
+         :param token: str: отримати маркер із заголовка авторизації
+         :param db: Сеанс: передає сеанс бази даних функції
+         :return: Об’єкт користувача
+         """
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=AuthMessages.could_not_validate_credentials,
             headers={"WWW-Authenticate": "Bearer"},
         )
         try:
-            # Decode JWT
+            # Декодувати JWT
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
             if payload['scope'] == 'access_token':
                 email = payload["sub"]
@@ -128,26 +123,19 @@ class Auth:
                 raise credentials_exception
         except JWTError as e:
             raise credentials_exception
-        user = self.r.get(f"user:{email}")
-        if user is None:
-            user = await repository_users.get_user_by_email(email, db)
-            if user is None:
-                raise credentials_exception
-            self.r.set(f"user:{email}", pickle.dumps(user))
-            self.r.expire(f"user:{email}", 900)
-        else:
-            user = pickle.loads(user)
+     
+        user = await repository_users.get_user_by_email(email, db)
+
         return user
 
     def create_email_token(self, data: dict):
         """
-        The create_email_token function takes a dictionary of data and returns a token.
-        The token is created by encoding the data with the SECRET_KEY and ALGORITHM,
-        and adding an iat (issued at) timestamp and exp (expiration) timestamp to it.
-
-        :param data: dict: Pass in the data that will be encoded into the token
-        :return: A token
-        """
+         Функція create_email_token приймає словник даних і повертає маркер.
+         Маркер створюється шляхом кодування даних за допомогою SECRET_KEY і ALGORITHM,
+         і додавання до нього мітки часу iat (випущено о) та мітки часу exp (термін дії).
+         :param data: dict: передати дані, які будуть закодовані в маркер
+         :return: Жетона
+         """
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(days=1)
         to_encode.update({"iat": datetime.utcnow(), "exp": expire})
@@ -156,13 +144,12 @@ class Auth:
 
     async def get_email_from_token(self, token: str):
         """
-        The get_email_from_token function takes a token as an argument
-        and returns the email address associated with that token.
-        The function uses the jwt library to decode the token, which is then used to return the email address.
-
-        :param token: str: Pass in the token that is sent to the user's email address
-        :return: The email address of the user who is currently logged in
-        """
+        Функція get_email_from_token приймає маркер як аргумент
+         і повертає адресу електронної пошти, пов’язану з цим маркером.
+         Функція використовує бібліотеку jwt для декодування маркера, який потім використовується для повернення електронної адреси.
+         :param token: str: передати маркер, який надсилається на електронну адресу користувача
+         :return: Адреса електронної пошти користувача, який зараз увійшов у систему
+         """
         try:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
             email = payload["sub"]
