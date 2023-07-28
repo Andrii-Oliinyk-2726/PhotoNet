@@ -1,48 +1,101 @@
-import pathlib
-import time
-from ipaddress import ip_address
-from typing import Callable
-
-# import redis.asyncio as redis
-from fastapi import FastAPI, Depends, HTTPException, Request, status
-from fastapi.responses import JSONResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-# from starlette.middleware.cors import CORSMiddleware
-# from fastapi_limiter import FastAPILimiter
-
-from src.database.db import get_db
-# from src.routes import clients, auth, users
-# from src.conf.config import settings
-
-app = FastAPI()
-
-templates = Jinja2Templates(directory='templates')
-BASE_DIR = pathlib.Path(__file__).parent
-app.mount("/static", StaticFiles(directory=BASE_DIR/"static"), name="static")
+import redis.asyncio as redis
+import uvicorn
+from fastapi import FastAPI
+from sqladmin import Admin, ModelView
+from fastapi_limiter import FastAPILimiter
+from src.conf.config import settings
+from src.database.db import engine
+from src.database.models import User, Image, Tag, Comment, TransformedImage, Rating
+from src.routes import transformed_images, auth, tags, comments_routes, images, ratings, users, search
 
 
-@app.get("/", response_class=HTMLResponse, description="Main Page")
-async def root(request: Request):
-    return templates.TemplateResponse('index.html', {"request": request, "title": "Contacts App"})
+# Стоврюємо екземпляр FastApi, встановлюємо назву додатка в swagger та відсоруємо роути по методам:
+app = FastAPI(swagger_ui_parameters={"operationsSorter": "method"}, title='PhotoShare app')
+
+# створюємо адмінку
+admin = Admin(app, engine)
 
 
-@app.get("/api/healthchecker")
-def healthchecker(db: Session = Depends(get_db)):
-    try:
-        # Make request
-        result = db.execute(text("SELECT 1")).fetchone()
-        if result is None:
-            raise HTTPException(status_code=500, detail="Database is not configured correctly")
-        return {"message": "Welcome to FastAPI!"}
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail="Error connecting to the database")
+# визначаємо зміст адмінки: якими моделями бази даних і якими полями хочемо керувати через адмінку:
+class UserAdmin(ModelView, model=User):
+    column_list = [User.id, User.username, User.email]
+    column_searchable_list = [User.username]
+    column_sortable_list = [User.id]
+    column_default_sort = [(User.email, True), (User.username, False)]
+    can_create = True
+    can_edit = True
+    can_delete = False
+    can_view_details = True
+    can_export = True
 
 
-# перевірка підключення
-# from src.database.db import get_db
-# if __name__ == "__main__":
-#     next(get_db())
+class ImageAdmin(ModelView, model=Image):
+    column_list = "__all__"
+    can_create = True
+    can_edit = True
+    can_delete = False
+    can_view_details = True
+    can_export = True
+
+
+class TagAdmin(ModelView, model=Tag):
+    column_list = "__all__"
+    can_create = True
+    can_edit = True
+    can_delete = False
+    can_view_details = True
+    can_export = True
+
+
+class CommentAdmin(ModelView, model=Comment):
+    column_list = "__all__"
+    can_create = True
+    can_edit = True
+    can_delete = False
+    can_view_details = True
+    can_export = True
+
+
+class TransformedImageAdmin(ModelView, model=TransformedImage):
+    column_list = "__all__"
+    can_create = True
+    can_edit = True
+    can_delete = False
+    can_view_details = True
+    can_export = True
+
+
+class RatingAdmin(ModelView, model=Rating):
+    column_list = "__all__"
+    can_create = True
+    can_edit = True
+    can_delete = False
+    can_view_details = True
+    can_export = True
+
+
+admin.add_view(UserAdmin)
+admin.add_view(ImageAdmin)
+admin.add_view(TagAdmin)
+admin.add_view(CommentAdmin)
+admin.add_view(RatingAdmin)
+admin.add_view(TransformedImageAdmin)
+
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to FastAPI!"}
+
+
+app.include_router(comments_routes.router, prefix='/api')
+app.include_router(users.router, prefix='/api')
+app.include_router(transformed_images.router, prefix='/api')
+app.include_router(auth.router, prefix='/api')
+app.include_router(tags.router, prefix='/api')
+app.include_router(images.router, prefix='/api')
+app.include_router(ratings.router, prefix='/api')
+app.include_router(search.router, prefix='/api')
+
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', reload=True)

@@ -1,9 +1,10 @@
+from fastapi import HTTPException
 from sqlalchemy import create_engine
+
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import DatabaseError
 
 from src.conf.config import settings
-
 
 SQLALCHEMY_DATABASE_URL = settings.sqlalchemy_database_url
 
@@ -16,7 +17,7 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
-    except DatabaseError:
+    except HTTPException:  # noqa
         db.rollback()
     finally:
         db.close()

@@ -6,22 +6,8 @@ class TagModel(BaseModel):
 
 
 class TagResponse(TagModel):
+    id: int = 1
     name: str
 
     class Config:
         orm_mode = True
-
-
-
-
-
-""" 
-додати в class ImageResponse
-
-    tags: List[TagResponse]
-
-    ---
-
-додати в class ImageModel:
-    tags: List[str]
-"""
