@@ -13,6 +13,7 @@ redis = "^4.6.0"
 fastapi-limiter = "^0.1.5"
 pydantic-settings = "^2.0.2"
 pydantic = {extras = ["email"], version = "^2.1.1"}
+alembic = "^1.11.1"
 
 
 [build-system]
