@@ -1,8 +1,8 @@
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-from pydantic.schema import datetime
-
+# from pydantic.schema import datetime
+from datetime import datetime
 from src.schemas.tag_schemas import TagResponse
 from src.schemas.user_schemas import UserResponse
 
@@ -12,12 +12,12 @@ class CommentResponse(BaseModel):
     comment: str = 'My comment'
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ImageAddModel(BaseModel):
     description: str = Field(max_length=500)
-    tags: Optional[List[str]]
+    tags: List[str]
 
 
 class ImageAddTagModel(BaseModel):
@@ -37,7 +37,7 @@ class ImageDb(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         exclude = {'updated_at', 'user', 'public_name'}
 
 
@@ -51,7 +51,7 @@ class ImageAdminDb(BaseModel):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         exclude = {'public_name', 'user_id'}
 
 
@@ -80,7 +80,7 @@ class ImageAddResponse(BaseModel):
     detail: str = "Image was successfully added"
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ImageAddTagResponse(BaseModel):
@@ -89,7 +89,7 @@ class ImageAddTagResponse(BaseModel):
     detail: str = "Image was successfully updated"
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ImageUpdateDescrResponse(BaseModel):
@@ -98,7 +98,7 @@ class ImageUpdateDescrResponse(BaseModel):
     detail: str = "Image was successfully updated"
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ImageDeleteResponse(BaseModel):
