@@ -1,5 +1,6 @@
 import datetime
-from pydantic import BaseModel, EmailStr, Field, HttpUrl
+from pydantic import BaseModel, EmailStr, Field
+
 
 # Вхідні дані ->//
 class UserModel(BaseModel):
@@ -10,9 +11,10 @@ class UserModel(BaseModel):
     city: str
     description: str
 
+
 # Вихідні дані //->
 class UserResponse(BaseModel):
-    id: int = 1
+    id: int
     username: str
     age: int
     phone: str
@@ -26,21 +28,21 @@ class UserResponse(BaseModel):
 
 # Вхідні дані ->//
 class PhotoModel(BaseModel):
-    url: str = Field("Photo url")
-    title: str = Field("Photo name", min_length=3, max_length=25)
-    description: str = Field("Photo description", min_length=10, max_length=50)
-    user_id: int = Field(1, gt=0)
+    title: str = Field()
+    description: str = Field(min_length=10, max_length=50)
+    user_id: int = Field(gt=0)
 
 
 # Вихідні дані //->
 class PhotoResponse(BaseModel):
-    id: int = 1
-    url: str
+    id: int
     title: str
     description: str
-    user: UserResponse
+    url: str
+    path: str
     updated_at: datetime
     created_at: datetime
+    user: UserResponse
 
     class Config:
         orm_mode = True
