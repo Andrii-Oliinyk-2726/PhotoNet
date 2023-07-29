@@ -1,52 +1,36 @@
 from typing import List
 
-from fastapi import Depends, HTTPException, status, Path, Query, APIRouter
+from fastapi import Depends, Path, Query, APIRouter, File, UploadFile
 from sqlalchemy.orm import Session
 
 from src.database.db import get_db
 from src.schemas import PhotoModel, PhotoResponse
-from src.database.models import User, Photo
-from src.conf.type_error import ERROR_1504, ERROR_1505
+from src.conf.config import settings, cloudinary_config
+from src.repository import photos as repository_photos
+
 
 router = APIRouter(prefix="/photos", tags=["photos"])
 
 
-@router.get("/photos", response_model=List[PhotoResponse], tags=["photos"])
-async def get_photos(limit: int = Query(10, le=300), offset: int = 0, db: Session = Depends(get_db)):
-    photos = db.query(Photo).limit(limit).offset(offset).all()
+@router.get("/", response_model=List[PhotoResponse], tags=["photos"])
+async def get_photos(limit: int = 100, offset: int = 0, db: Session = Depends(get_db)):
+    photos = await repository_photos.get_photos(limit, offset, db)
     return photos
 
 
-@router.get("/photos/{photo_id}", response_model=PhotoResponse, tags=["photos"])
-async def get_photo(photo_id: int = Path(ge=1), db: Session = Depends(get_db)):
-    photo = db.query(Photo).filter_by(id=photo_id).first()
-    if photo is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_1504)
+@router.get("/{photo_id}", response_model=PhotoResponse, tags=["photos"])
+async def get_photo(photo_id: int, db: Session = Depends(get_db)):
+    photo = await repository_photos.get_photo(photo_id, db)
     return photo
 
 
-@router.post("/photos", response_model=PhotoResponse, tags=["photos"])
-async def create_photo(body: PhotoModel, db: Session = Depends(get_db)):
-    user = db.query(User).filter_by(id=body.user_id).first()
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_1505)
-    photo = Photo(**body.dict())
-    db.add(photo)
-    db.commit()
+@router.post("/", response_model=PhotoResponse, tags=["photos"])
+async def create_photo(body: PhotoModel = Depends(), image: UploadFile = File(), db: Session = Depends(get_db)):
+    photo = await repository_photos.create_photo(body, image, db)
     return photo
 
 
-@router.put("/photos/{photo_id}", response_model=PhotoResponse, tags=["photos"])
-async def update_photo(body: PhotoModel, photo_id: int = Path(ge=1), db: Session = Depends(get_db)):
-    photo = db.query(Photo).filter_by(id=photo_id).first()
-    if photo is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_1504)
-    # user = db.query(User).filter_by(id=body.user_id).first()
-    # if user is None:
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ERROR_1505)
-    photo.url = body.url
-    photo.title = body.title
-    photo.description = body.description
-    photo.user_id = body.user_id
-    db.commit()
+@router.put("/{photo_id}", response_model=PhotoResponse, tags=["photos"])
+async def update_photo(body: PhotoModel = Depends(), photo_id: int = Path(ge=1), db: Session = Depends(get_db)):
+    photo = await repository_photos.update_photo(body, photo_id, db)
     return photo
