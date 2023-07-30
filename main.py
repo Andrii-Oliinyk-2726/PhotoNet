@@ -10,7 +10,7 @@ from src.routes import transformed_images, auth, tags, comments_routes, images, 
 
 
 # Стоврюємо екземпляр FastApi, встановлюємо назву додатка в swagger та відсоруємо роути по методам:
-app = FastAPI(swagger_ui_parameters={"operationsSorter": "method"}, title='PhotoShare app')
+app = FastAPI(swagger_ui_parameters={"operationsSorter": "method"}, title='PhotoNet app')
 
 
 # створюємо адмінку
