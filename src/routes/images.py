@@ -105,8 +105,8 @@ async def upload_image(body: ImageAddModel = Depends(), file: UploadFile = File(
     correct_public_name = await images_service_change_name(public_name, db)
 
     file_name = correct_public_name + "_" + str(current_user.username)
-    r = cloudinary.uploader.upload(file.file, public_id=f'PhotoShare/{file_name}', overwrite=True)
-    src_url = cloudinary.CloudinaryImage(f'PhotoShare/{file_name}') \
+    r = cloudinary.uploader.upload(file.file, public_id=f'PhotoNet/{file_name}', overwrite=True)
+    src_url = cloudinary.CloudinaryImage(f'PhotoNet/{file_name}') \
         .build_url(width=250, height=250, crop='fill', version=r.get('version'))
 
     image, details = await images.add_image(db, body, correct_tags, src_url, correct_public_name, current_user)
