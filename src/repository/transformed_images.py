@@ -33,11 +33,13 @@ async def create_transformed_picture(body: TransformedImageModel,
 
     public_id = original_image.public_name
     file_name = public_id + "_" + str(current_user.username)
-    new_url = cloudinary.CloudinaryImage(f'PhotoShare/{file_name}').build_url(transformation=transformations)
+    # new_url = cloudinary.CloudinaryImage(f'PhotoShare/{file_name}').build_url(transformation=transformations)
+    new_url = cloudinary.CloudinaryImage(f'PhotoNet/{file_name}').build_url(transformation=transformations)
     qrcode_url = generate_and_upload_qr_code(new_url)
     print(qrcode_url)
 
-    new_transformed_image = TransformedImage(transform_image_url=new_url, qrcode_image_url=qrcode_url, image_id=original_image.id)
+    new_transformed_image = TransformedImage(transform_image_url=new_url, qrcode_image_url=qrcode_url,
+                                             image_id=original_image.id)
     db.add(new_transformed_image)
     db.commit()
     db.refresh(new_transformed_image)
@@ -60,7 +62,8 @@ async def get_all_transformed_images(skip: int, limit: int, image_id: int, db: S
         filter(and_(TransformedImage.image_id == image_id, Image.user_id == current_user.id)). \
         offset(skip).limit(limit).all()
     if not transformed_list:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transformed images for this image not found or user is not owner of this image")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Transformed images for this image not found or user is not owner of this image")
     return transformed_list
 
 
@@ -76,7 +79,8 @@ async def get_transformed_img_by_id(transformed_id: int, db: Session, current_us
     transformed_image = db.query(TransformedImage).join(Image). \
         filter(and_(TransformedImage.id == transformed_id, Image.user_id == current_user.id)).first()
     if not transformed_image:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transformed image not found or user is not owner of this image")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Transformed image not found or user is not owner of this image")
     return transformed_image
 
 
@@ -115,7 +119,8 @@ async def get_qrcode_transformed_image_by_id(transformed_id: int, db: Session, c
     transformed_image = db.query(TransformedImage).join(Image). \
         filter(and_(TransformedImage.id == transformed_id, Image.user_id == current_user.id)).first()
     if not transformed_image:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transformed image not found or user is not owner of this image")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Transformed image not found or user is not owner of this image")
     print(transformed_image.qrcode_image_url)
     return transformed_image
 
@@ -132,5 +137,6 @@ async def get_url_transformed_image_by_id(transformed_id: int, db: Session, curr
     transformed_image = db.query(TransformedImage).join(Image). \
         filter(and_(TransformedImage.id == transformed_id, Image.user_id == current_user.id)).first()
     if not transformed_image:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transformed image not found or user is not owner of this image")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Transformed image not found or user is not owner of this image")
     return transformed_image
