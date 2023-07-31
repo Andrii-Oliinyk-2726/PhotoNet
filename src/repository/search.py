@@ -83,16 +83,17 @@ async def find_image_by_tag(skip: int, limit: int, search: str, filter_type: str
     images = []
 
     if filter_type == "d":
-        images = db.query(Image)\
-            .join(image_m2m_tag).\
-            join(Tag)\
-            .filter(or_(func.cast(Image.description, String).op('~')(search),func.cast(Tag.name, String).op('~')(search)))\
-            .order_by(desc(Image.created_at))\
+        images = db.query(Image) \
+            .join(image_m2m_tag). \
+            join(Tag) \
+            .filter(
+            or_(func.cast(Image.description, String).op('~')(search), func.cast(Tag.name, String).op('~')(search))) \
+            .order_by(desc(Image.created_at)) \
             .offset(skip).limit(limit).all()
 
     elif filter_type == "-d":
         images = db.query(Image) \
-            .join(image_m2m_tag)\
+            .join(image_m2m_tag) \
             .join(Tag) \
             .filter(
             or_(func.cast(Image.description, String).op('~')(search), func.cast(Tag.name, String).op('~')(search))) \
@@ -101,7 +102,7 @@ async def find_image_by_tag(skip: int, limit: int, search: str, filter_type: str
 
     elif filter_type == "r":
         images = db.query(Image) \
-            .join(image_m2m_tag)\
+            .join(image_m2m_tag) \
             .join(Tag).filter(
             or_(func.cast(Image.description, String).op('~')(search), func.cast(Tag.name, String).op('~')(search))) \
             .offset(skip).limit(limit).all()
